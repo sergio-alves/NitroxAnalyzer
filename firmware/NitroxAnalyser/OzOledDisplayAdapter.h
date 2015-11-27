@@ -1,4 +1,4 @@
-// I2COledDisplayAdapter.h
+// OzOledDisplayAdapter.h
 
 #ifndef _I2COLEDDISPLAYADAPTER_h
 #define _I2COLEDDISPLAYADAPTER_h

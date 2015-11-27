@@ -5,6 +5,11 @@
 #include "Hardware.h"
 #include "DisplayAdapter.h"
 
+typedef struct {
+	byte currentState;
+	unsigned long lastStateChange;
+} ButtonState;
+
 class AnalyzerApp {
 
 public:
@@ -34,8 +39,8 @@ private:
 
 	// private variables
 	int state = 0;
-	byte buttonsOldValues[2] = { 1, 1 };
-	unsigned long buttonLastStateChangeMillis[2] = { millis(), millis() };
+
+	ButtonState states[2];
 
 	unsigned long start = 0;
 	int anaSteps = 0;

@@ -1,6 +1,11 @@
 #include "AnalyzerApp.h"
 
+//Create an instance with A displayAdapter as parameter
 AnalyzerApp::AnalyzerApp(DisplayAdapter &displayAdapter) : displayAdapter(displayAdapter){
+	for (int i = 0; i < 2; i++) {
+		states[i].currentState = 1;
+		states[i].lastStateChange = millis();
+	}
 }
 
 void AnalyzerApp::doSetup() {
@@ -60,16 +65,16 @@ void AnalyzerApp::doLoop() {
  * Checks button and debounce
  */
 void AnalyzerApp::checkAndDebounce(int index, int pinId, void (AnalyzerApp::*f)()) {
-	if (buttonsOldValues[index] != digitalRead(pinId) && (millis() - buttonLastStateChangeMillis[index]) > 100) {
-		buttonLastStateChangeMillis[index] = millis();
+	if (states[index].currentState != digitalRead(pinId) && (millis() - states[index].lastStateChange) > 100) {
+		states[index].lastStateChange = millis();
 
 		//Change occured let's handle
-		if (buttonsOldValues[index] == 1) {
+		if (states[index].currentState == 1) {
 			//Falling edge => must do job
 			(app.*f)();
 		}
 
-		buttonsOldValues[index] = digitalRead(pinId);
+		states[index].currentState = digitalRead(pinId);
 	}
 }
 
