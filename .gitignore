@@ -3,3 +3,5 @@
 *.s#*
 **/build/*
 **/dist/*
+*exports*
+resources/Thumbs.db
