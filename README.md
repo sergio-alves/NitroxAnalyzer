@@ -1,8 +1,6 @@
 # NitroxAnalyzer
 This repository contains everything needed to build a nitrox analyzer that uses a compatible R17 O2 cell
 
-## Software Versions Used
+Read [the wiki page](https://github.com/sergio-alves/NitroxAnalyzer/wiki) to get more information about the project
 
-* box - FreeCad 0.15
-* hardware - Cadsoft Eagle 7.3.0
-* firmware - Arduino IDE 1.6.5
+
