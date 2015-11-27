@@ -5,3 +5,13 @@
 **/dist/*
 *exports*
 resources/Thumbs.db
+Debug
+firmware/NitroxAnalyser/ClassDiagram.cd
+firmware/NitroxAnalyser/ClassDiagram1.cd
+firmware/NitroxAnalyser/NitroxAnalyser.opensdf
+firmware/NitroxAnalyser/NitroxAnalyser.sdf
+firmware/NitroxAnalyser/NitroxAnalyser.sln
+firmware/NitroxAnalyser/NitroxAnalyser.v12.suo
+firmware/NitroxAnalyser/NitroxAnalyser.vcxproj
+firmware/NitroxAnalyser/NitroxAnalyser.vcxproj.filters
+Visual Micro

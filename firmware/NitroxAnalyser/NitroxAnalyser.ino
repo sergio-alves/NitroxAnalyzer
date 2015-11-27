@@ -1,12 +1,18 @@
-#include <HardwareSerial.h>
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 #include <Wire.h>
 #include <OzOLED.h>
-//#include "Hardware.h"
-//#include "Constants.h"
-#include "DisplayAdapter.h"
+
 #include "AnalyzerApp.h"
+#include "OzOledDisplayAdapter.h"
 
 /********************************************************************************************************************************************/
+AnalyzerApp app = AnalyzerApp(ozOledDisplayAdapter);
+
 /**
  * The arduino setup method
  */

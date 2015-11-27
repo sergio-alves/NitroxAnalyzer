@@ -1,29 +1,31 @@
-#ifndef __DISPLAY_ADAPTER_H__
-#define __DISPLAY_ADAPTER_H__
+#ifndef _DISPLAYADAPTER_H
+#define _DISPLAYADAPTER_H
 
-#include <Arduino.h>
-#include <Wire.h>
-#include <OzOLED.h>
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 #include "DisplayAdapter.h"
 #include "Constants.h"
 
-class DisplayAdapter: public OzOLED{
-    public :
-      void displaySplashScreen();
-      void displayMainScreen(int batteryStatus) ;
-      void displayBatteryStatus(int batteryStatus);
-      void progressBarUpdate(int progress);
-      void clearDisplay(int spage, int epage, int scol, int ecol);  
-      void displayOxygenRate(byte digs[]);
-            
-      //to override
-      inline void drawBitmap(const byte *bitmaparray, byte x, byte y, byte width, byte height){ OzOLED::drawBitmap(bitmaparray, x, y, width, height);};
-      inline void printString(const char *str, byte x=255, byte y=255, byte numChar=255){OzOLED::printString(str, x,y,numChar);};
-      inline void sendCommand(byte command){OzOLED::sendCommand(command);};
-      inline void sendData(byte data){OzOLED::sendData(data);};
-      inline void init() {OzOLED::init();};
+class DisplayAdapter {
+public:
+	virtual void displaySplashScreen() = 0;
+	virtual void displayMainScreen(int batteryStatus) = 0;
+	virtual void displayTurnValvOnScreen() = 0;
+	virtual void displayFlowIndicatorScreen() = 0;
+	virtual void updateFlowIndicator(int flowMappedValue) = 0;
+
+	virtual void displayBatteryStatus(int batteryStatus) = 0;
+	virtual void progressBarUpdate(int progress) = 0;
+	virtual void clearDisplay(int spage, int epage, int scol, int ecol) = 0;
+	virtual void displayOxygenRate(byte digs[]) = 0;
+	virtual void setSegmentRemap(int remapValue);
+	virtual void init() = 0;
 };
 
-extern DisplayAdapter displayAdapter;
+extern DisplayAdapter &displayAdapter;
 
-#endif //__DISPLAY_ADAPTER_H__
+#endif //_DISPLAYADAPTER_H
