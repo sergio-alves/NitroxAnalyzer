@@ -16,3 +16,7 @@ firmware/NitroxAnalyser/NitroxAnalyser.vcxproj
 firmware/NitroxAnalyser/NitroxAnalyser.vcxproj.filters
 Visual Micro
 Release
+*.err
+*.FCStd1
+hardware/eagle files/NitroxAnalyzer - Copie.brd
+hardware/images/Thumbs.db
