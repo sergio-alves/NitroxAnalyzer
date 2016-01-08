@@ -16,7 +16,67 @@ void AnalyzerApp::doSetup() {
 	state = 0;
 	pinMode(LEFT_BUTTON_PIN, INPUT_PULLUP);
 	pinMode(RIGHT_BUTTON_PIN, INPUT_PULLUP);
+
+	bool zero = true;
+
+	for (int i = 0; i < 8; i++) {
+		linear_coeff.data[i] = EEPROM.read(i);
+		if (linear_coeff.data[i] != 0) {
+			
+			zero = false;
+		}
+	}
+	if (!zero) {
+		Serial.print(F("Loaded linear coefficient from eeprom x * 10000 = ")); 
+		Serial.println(((unsigned int)(linear_coeff.coeff * 10000.0)));
+	}
+
+	analogReference(INTERNAL);
+	//START ANALOG TO FORCE REFERENCE CHANGE
+	analogRead(O2_CELL_ANALOG);
+	_delay_ms(10);
+	/*
+	anaSteps = 0;
+	while (!calibrationTask()) { delay(280); }
+	*/
+	start = millis();
 }
+
+void AnalyzerApp::debug() {
+	
+	int mvpre, mvpost, minmvpre, minmvpost, maxmvpre, maxmvpost;
+	int o2pre, o2post, o2minpre,o2minpost,o2maxpre,o2maxpost;
+
+	//CHANGE REFERENCE
+	int o2 = analogRead(O2_CELL_ANALOG);
+	double mv = (o2 * 0.0010752688172043010752688172043);
+	if (max < o2)
+		max = o2;
+	if (min > o2)
+		min = o2;
+
+	mvpre = (int)mv;
+	mvpost = (int)((mv - mvpre) * 1000);
+	
+	o2pre = (int)(linear_coeff.coeff * o2);
+	o2post = (int)((linear_coeff.coeff * o2 - o2pre) * 1000);
+
+	o2minpre = (int)(linear_coeff.coeff * min);
+	o2maxpre = (int)(linear_coeff.coeff * max);
+	o2minpost = (int)((linear_coeff.coeff * min - o2minpre) * 1000);
+	o2maxpost = (int)((linear_coeff.coeff * max - o2maxpre) * 1000);
+
+	minmvpre = (int)(min * 0.0010752688172043010752688172043);
+	maxmvpre = (int)(max * 0.0010752688172043010752688172043);
+	minmvpost = (int)((min * 0.0010752688172043010752688172043 - minmvpre) * 1000);
+	maxmvpost = (int)((max * 0.0010752688172043010752688172043 - maxmvpre) * 1000);
+
+	sprintf(buffer, "%04i : %i.%i mv, %i.%i %%o2, with (min-max) [digital: %i - %i :: %% O2: %i.%i - %i.%i %% :: mv: %i.%i - %i.%i]", o2, mvpre, mvpost, o2pre, o2post, min, max, o2minpre, o2minpost, o2maxpre, o2maxpost, minmvpre,minmvpost, maxmvpre, maxmvpost);
+	Serial.println(buffer);	
+
+	displayAdapter.displayCurrentO2AnalogValueAndMv(o2, o2 * 0.0010752688172043010752688172043);
+}
+
 
 void AnalyzerApp::doLoop() {
 	//Check start analyse button
@@ -34,32 +94,104 @@ void AnalyzerApp::doLoop() {
 		start = millis();
 		break;
 	case 1:
-		if (nonBlockingDelayElapsed(500)) {
+		if (nonBlockingDelayElapsed(5000)) {
 			state = 2;
 			Serial.println(F("Changing state : 1 -> 2"));
 		}
 		break;
 	case 2:
-		displayAdapter.displayMainScreen(map(analogRead(BATTERY_ANALOG), 800, 1023, 0, 4));
+    //Battery input signal is mapped between 0v and 3v 
+    //Full battery will have 3V at BATTERY_ANALOG input and when 6v and less will have 0V 
+		analogReference(DEFAULT);
+		displayAdapter.displayMainScreen(map(analogRead(BATTERY_ANALOG), 0, 630, 0, 4));
 		Serial.println(F("Changing state : 2 -> idle"));
 		state = 1000;
+    start = millis();
 		break;
 	case 3:
 		if (analyzeTask()){
 			Serial.println(F("Changing state : 3 -> Idle"));
 			state = 1000;
+			
+			start = millis();
 		}
 		break;
 	case 4: //Start Calibration
 		if (calibrationTask()){
 			Serial.println(F("Changing state : 4 -> Idle"));
 			state = 1000;
+      start = millis();
 		}
 		break;
 	default:
+		if(millis()-start > 2000) {
+		  start = millis();
+		  analogReference(DEFAULT);
+		  analogRead(BATTERY_ANALOG);
+		  delay(10);
+		  displayAdapter.displayBatteryStatus(map(analogRead(BATTERY_ANALOG), 0, 630, 0, 4));
+
+		  //CHANGE REFERENCE
+		  analogReference(INTERNAL);
+		  //START ANALOG TO FORCE REFERENCE CHANGE
+		  analogRead(O2_CELL_ANALOG);
+		  //WAIT SOME TIME
+		  delay(10);
+
+		  debug();
+			
+		  int min=1023;
+		  int max=0;
+		  int v = 0;
+
+		  double average;
+		  Serial.print(F("Reading 100 values : "));
+
+		  //READ 100 TIMES ANALOG VALUE AND RETURN AN AVERAGE
+		  for (int i = 0; i < 100; i++){
+			  v = analogRead(O2_CELL_ANALOG);
+			  if (i>0)
+				  Serial.print(F(","));
+			  Serial.print(v);
+
+			  _delay_us(100);
+
+			  average += v;
+
+			  if (max < v)
+				  max = v;
+			  if (min > v)
+				  min = v;
+		  }
+
+		  Serial.println();
+
+		  average /= 100;
+
+		  Serial.print(F("100 pondered values (min, max) ->(")); 
+		  Serial.print(min);
+		  Serial.print(F(", "));
+		  Serial.print(max);
+		  Serial.print(F(") analog -> "));
+		  Serial.print((unsigned int)v);
+		  Serial.print(F("."));
+		  Serial.print((unsigned int)((v-(unsigned int)v)*100));
+		  Serial.print(F(" :: coeff -> "));
+		  Serial.print((unsigned int)linear_coeff.coeff);
+		  Serial.print(F(" :: coeff * analog -> "));
+
+		  double vtodisp = linear_coeff.coeff * rb.insert(v);
+		  Serial.print((unsigned int)vtodisp);
+		  vtodisp *= 100.0;
+		  Serial.print(F(":: percent -> "));
+		  Serial.println((unsigned int)vtodisp);
+
+		  displayValue((unsigned int)vtodisp, true);
+		}
 		break;
 	}
 }
+
 
 /**
  * Checks button and debounce
@@ -83,6 +215,7 @@ void AnalyzerApp::checkAndDebounce(int index, int pinId, void (AnalyzerApp::*f)(
  */
 void AnalyzerApp::actionOnStartButtonClick() {
 	Serial.println(F("Start analyse button pressed"));
+	anaSteps = 5;
 	state = 3;
 }
 
@@ -92,6 +225,7 @@ void AnalyzerApp::actionOnStartButtonClick() {
 void AnalyzerApp::actionOnCalibrationButtonClick() {
 	Serial.println(F("Start Calibration button pressed"));
 	state = 4;
+	anaSteps = 0;
 }
 
 
@@ -131,12 +265,17 @@ boolean AnalyzerApp::analyzeTask() {
 		analyzeTaskFlowRegulation();
 		break;
 	case 5:
-		analyzeTaskReadValue(F("Analyzer"), 5, 6);
-		break;
+		//force the use of internal reference
+		analogReference(INTERNAL);  //1.1v
+		delay(500);
+		anaSteps = 1;
 	case 6:
-		analyzeTaskFadeProgressBar(F("Analyzer"), 6, 7);
+		analyzeTaskReadValue(F("Analyzer"), 6, 7, false);
 		break;
 	case 7:
+		analyzeTaskFadeProgressBar(F("Analyzer"), 7, 8);
+		break;
+	case 8:
 		//Before leave... clean state machine variable anaSteps and set main loop to idle
 		anaSteps = 0;
 		Serial.println(F("Fadding finished"));
@@ -151,12 +290,18 @@ boolean AnalyzerApp::analyzeTask() {
 boolean AnalyzerApp::calibrationTask() {
 	switch (anaSteps) {
 	case 0:
-		analyzeTaskReadValue(F("Calibration"), 0, 1);
-		break;
+		//force the use of internal reference
+		analogReference(INTERNAL);  //1.1v
+		analogRead(O2_CELL_ANALOG);
+		delay(20);
+		anaSteps = 1;
 	case 1:
-		analyzeTaskFadeProgressBar(F("Calibration"), 1, 2);
+		analyzeTaskReadValue(F("Calibration"), 1, 2, true);
 		break;
 	case 2:
+		analyzeTaskFadeProgressBar(F("Calibration"), 2, 3);
+		break;
+	case 3:
 		//Before leave... clean state machine variable anaSteps and set main loop to idle
 		anaSteps = 0;
 		Serial.println(F("Fadding finished"));
@@ -289,13 +434,17 @@ long AnalyzerApp::fromIntToDigitsArray(int digit, long decvalcp, long power) {
 /**
  * Displays the Oxy percent value
  */
-void AnalyzerApp::displayValue(int decval) {
+void AnalyzerApp::displayValue(int decval, bool update=false) {
 	int decvalcp = decval;
 
 	Serial.print(F("Going to display following value : "));
 	Serial.print(decval);
 
-	displayAdapter.clearDisplay(0, 4, 0, 128);
+	if (!update) 
+		displayAdapter.clearDisplay(0, 4, 0, 128);
+	else
+		displayAdapter.clearDisplay(0, 4, 0, 72);
+
 
 	if (decval / 10000 == 1) {
 		//prints digit 100.00 at
@@ -343,10 +492,58 @@ void AnalyzerApp::printTransitionMessage(const __FlashStringHelper* task, int cu
 	Serial.println(nextStep);
 }
 
+double AnalyzerApp::getAnalogValueAverage() {
+	double value = 0;
+
+	//Calculating the average of last rb.getcount()
+	Serial.print(F("Calculating the average of "));
+	Serial.print(rb.getCount());
+	Serial.println(F(" last analog reads"));
+
+	for (int i = 0; i < rb.getCount(); i++) {
+		value += (double)rb.getElementAt(i);
+
+		if (i >0)
+			Serial.print(F(" + "));
+		Serial.print(rb.getElementAt(i));
+	}
+
+	Serial.print(F(" = "));
+
+	//The average of rb.getcount();
+	value /= (double)rb.getCount();
+
+	Serial.print(F(" int val : "));
+
+	Serial.println((unsigned int)value);
+
+	return value;
+}
+
+void AnalyzerApp::calibrate(double value) {
+
+	linear_coeff.coeff = 20.95 / value;
+
+	//Stores teh coefficient into EEPROM
+	for (int i = 0; i < 8; i++){
+		EEPROM.write(i, linear_coeff.data[i]);
+	}
+
+	for (int i = 0; i < 8; i++){
+		if (linear_coeff.data[i] != EEPROM.read(i)) {
+			Serial.println(F("Error. Bad liner coefficient storage"));
+			return;
+		}
+	}
+
+	Serial.print(F("Coefficient Stored (x * 10000): "));
+	Serial.println((unsigned int)(linear_coeff.coeff * 10000));
+}
+
 /**
  * Reads value and display value each 280ms => ~5 times per second during about 10s
  */
-void AnalyzerApp::analyzeTaskReadValue(const __FlashStringHelper* task, int currentStep, int nextStep) {
+void AnalyzerApp::analyzeTaskReadValue(const __FlashStringHelper* task, int currentStep, int nextStep, bool cal) {
 	if (millis() - start > 280){
 		start = millis();
 		progress++;
@@ -365,21 +562,34 @@ void AnalyzerApp::analyzeTaskReadValue(const __FlashStringHelper* task, int curr
 
 
 		if (progress == 100){
-			Serial.println(F("Calibration completed"));
 			progress = 0;
 			anaSteps = nextStep; //Fade progress bar
+			double value = getAnalogValueAverage();
+
+			//calibrate
+			if (cal)
+				calibrate(value);
+
+			//Do stuff related with task completion ... example display the value ;)
+			displayValue(((unsigned int)(value * linear_coeff.coeff * 100)), false);
+
 			printTransitionMessage(task, currentStep, nextStep);
 			start = millis();
 		}
 		else{
-			if (progress % 10 == 0) {
-				mappedValue = map(analogRead(O2_CELL_ANALOG), 0, 1023, 0, 10000);
+			if (progress % 2 == 1) {
+				Serial.print(F("Got new O2 sensor value (ref=1.1v) : "));
+				Serial.println(rb.insert(analogRead(O2_CELL_ANALOG)));
 
 				//Do stuff related with task completion ... example display the value ;)
-				displayValue(mappedValue);
+				//displayValue(mappedValue);
 
-				Serial.print(F("O2 mapped value :"));
+				/*
+				Serial.print(F("O2 mapped value real->mapped:"));
+				Serial.print(analogRead(O2_CELL_ANALOG));
+				Serial.print(F("->"));
 				Serial.println(mappedValue);
+				*/
 			}
 		}
 	}

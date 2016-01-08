@@ -71,6 +71,9 @@ void OzOledDisplayAdapter::updateFlowIndicator(int flowMappedValue) {
 * Battery status moves from full -> 75% -> 50% -> 25% ->nearly empty
 */
 void OzOledDisplayAdapter::displayBatteryStatus(int batteryStatus) {
+
+  clearDisplay(5, 6, 56, 72);
+  
 	switch (batteryStatus) {
 	default:
 	case 0:
@@ -96,6 +99,8 @@ void OzOledDisplayAdapter::displayBatteryStatus(int batteryStatus) {
 */
 void OzOledDisplayAdapter::displayMainScreen(int batteryStatus) {
 	Serial.println(F("Displaying main interface"));
+  Serial.print(F("Battery Status : "));
+  Serial.println(batteryStatus);
 	ozOled.clearDisplay();               // clear the screen and set start position to top left corner
 	ozOled.drawBitmap(&startMenu[2], 8, 48, (int)pgm_read_byte(&startMenu[0]), (int)pgm_read_byte(&startMenu[1]));
 	ozOled.drawBitmap(&calibMenu[2], 88, 48, (int)pgm_read_byte(&calibMenu[0]), (int)pgm_read_byte(&calibMenu[1]));
@@ -144,6 +149,16 @@ void OzOledDisplayAdapter::displayOxygenRate(byte digs[]) {
 		pos -= (int)pgm_read_byte(&digits[digs[i]][0]);
 		ozOled.drawBitmap(&(digits[digs[i]][2]), pos, 0, (int)pgm_read_byte(&digits[digs[i]][0]), (int)pgm_read_byte(&digits[digs[i]][1]));
 	}
+}
+
+void OzOledDisplayAdapter::displayCurrentO2AnalogValueAndMv(int analog, double mv){
+	char sbuffer[16];
+	int mvpre = (int)(mv * 1000.0);
+	int mvpost = (int)(((mv*1000) - mvpre) * 100);
+	sbuffer[15] = 0;
+	sprintf(sbuffer, "%04i %i.%2i mv\0", analog, mvpre, mvpost);
+	
+	ozOled.printString(sbuffer, 1, 5, 15);
 }
 
 OzOledDisplayAdapter ozOledDisplayAdapter;

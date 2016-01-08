@@ -37,6 +37,7 @@ public:
 	void printEnableNitroxFlow();
 
 	void setSegmentRemap(int remapValue);
+	void displayCurrentO2AnalogValueAndMv(int analog, double mv);
 
 };
 

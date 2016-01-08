@@ -4,6 +4,7 @@
 #include "WProgram.h"
 #endif
 
+#include <eeprom.h>
 #include <Wire.h>
 #include <OzOLED.h>
 

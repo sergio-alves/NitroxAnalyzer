@@ -89,7 +89,7 @@ public class ImageToByteArray extends javax.swing.JFrame {
         JFileChooser jfc = new JFileChooser();
         jfc.showDialog(this, "Convert File");
         File f = jfc.getSelectedFile();
-
+                
         if (f != null) {
             try {
                 BufferedReader fr = new BufferedReader(new FileReader(f));

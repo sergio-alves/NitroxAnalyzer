@@ -24,6 +24,7 @@ public:
 	virtual void displayOxygenRate(byte digs[]) = 0;
 	virtual void setSegmentRemap(int remapValue);
 	virtual void init() = 0;
+	virtual void displayCurrentO2AnalogValueAndMv(int analog, double mv)=0;
 };
 
 extern DisplayAdapter &displayAdapter;

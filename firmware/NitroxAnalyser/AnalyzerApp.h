@@ -1,14 +1,26 @@
 #ifndef __ANALYZER_APP_H__
 #define __ANALYZER_APP_H__
 
-#include <Arduino.h>
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
+#include <eeprom.h>
 #include "Hardware.h"
 #include "DisplayAdapter.h"
+#include "RingBuffer.h"
 
 typedef struct {
 	byte currentState;
 	unsigned long lastStateChange;
 } ButtonState;
+
+typedef union {
+	byte data[8];
+	double coeff;
+} LinearCoefficient;
 
 class AnalyzerApp {
 
@@ -29,13 +41,16 @@ private:
 	boolean calibrationTask();
 	void analyzeTaskDoesFlowExists();
 
-	void analyzeTaskReadValue(const __FlashStringHelper* task, int currentStep, int nextStep);
+	void analyzeTaskReadValue(const __FlashStringHelper* task, int currentStep, int nextStep, bool calibrate);
 	void analyzeTaskFadeProgressBar(const __FlashStringHelper* task, int currentStep, int nextStep);
 	void printTransitionMessage(const __FlashStringHelper* task, int currentStep, int nextStep);
-	void displayValue(int decval);
+	void displayValue(int decval, bool update);
 	long fromIntToDigitsArray(int digit, long decvalcp, long power);
 	void analyzeTaskFlowRegulation();
 	byte sign(int value);
+	void calibrate(double value);
+	double getAnalogValueAverage();
+
 
 	// private variables
 	int state = 0;
@@ -52,8 +67,18 @@ private:
 	byte progress = 0;
 	byte oldprogress = 0;
 	byte gencnt = 0;
+  
+	int max = 0, min = 1023;
+	char buffer[128];
+	char sbuffer[16];
+
+	void debug();
 
 	DisplayAdapter &displayAdapter;
+
+	LinearCoefficient linear_coeff;
+
+	RingBuffer rb ; //initializes a ringbuffer with 10 elements
 };
 
 extern AnalyzerApp app;
