@@ -10,7 +10,7 @@ Release
 *.FCStd1
 hardware/eagle files/NitroxAnalyzer - Copie.brd
 hardware/images/Thumbs.db
-softwareandroid/NitroxAnalyzer/.gradle/
+software/android/NitroxAnalyzer/.gradle/
 software/android/NitroxAnalyzer/.idea/
 software/firmware/NitroxAnalyzer/NitroxAnalyser.v12.suo
 software/firmware/NitroxAnalyzer/NitroxAnalyzer.opensdf

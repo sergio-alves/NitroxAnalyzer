@@ -109,6 +109,7 @@ public class OxygenDisplay extends AppCompatActivity {
                 //and finally ask for calibration
                 btHandler.addNewCommand(new GetAverageCommand(CALIBRATION_ITERATIONS));
             }
+            
             @Override
             public boolean handleMessage(Message msg) {
                 switch (States.getState(msg.what)) {
