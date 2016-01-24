@@ -5,30 +5,20 @@
 **/dist/*
 *exports*
 resources/Thumbs.db
-Debug
-firmware/NitroxAnalyser/ClassDiagram.cd
-firmware/NitroxAnalyser/ClassDiagram1.cd
-firmware/NitroxAnalyser/NitroxAnalyser.opensdf
-firmware/NitroxAnalyser/NitroxAnalyser.sdf
-firmware/NitroxAnalyser/NitroxAnalyser.sln
-firmware/NitroxAnalyser/NitroxAnalyser.v12.suo
-firmware/NitroxAnalyser/NitroxAnalyser.vcxproj
-firmware/NitroxAnalyser/NitroxAnalyser.vcxproj.filters
-Visual Micro
 Release
 *.err
 *.FCStd1
 hardware/eagle files/NitroxAnalyzer - Copie.brd
 hardware/images/Thumbs.db
-android/NitroxAnalyzer/.gradle/
-android/NitroxAnalyzer/.idea/
-firmware/NitroxAnalyzer/NitroxAnalyser.v12.suo
-firmware/NitroxAnalyzer/NitroxAnalyzer.opensdf
-firmware/NitroxAnalyzer/NitroxAnalyzer.sdf
-firmware/NitroxAnalyzer/NitroxAnalyzer.sln
-firmware/NitroxAnalyzer/ipch
-firmware/NitroxAnalyzer/Debug
-firmware/NitroxAnalyzer/Visual Micro
-firmware/NitroxAnalyzer/NitroxAnalyzer.v12.suo
-firmware/NitroxAnalyzer/NitroxAnalyzer.vcxproj
-firmware/NitroxAnalyzer/NitroxAnalyzer.vcxproj.filters
+softwareandroid/NitroxAnalyzer/.gradle/
+software/android/NitroxAnalyzer/.idea/
+software/firmware/NitroxAnalyzer/NitroxAnalyser.v12.suo
+software/firmware/NitroxAnalyzer/NitroxAnalyzer.opensdf
+software/firmware/NitroxAnalyzer/NitroxAnalyzer.sdf
+software/firmware/NitroxAnalyzer/NitroxAnalyzer.sln
+software/firmware/NitroxAnalyzer/ipch
+software/firmware/NitroxAnalyzer/Debug
+software/firmware/NitroxAnalyzer/Visual Micro
+software/firmware/NitroxAnalyzer/NitroxAnalyzer.v12.suo
+software/firmware/NitroxAnalyzer/NitroxAnalyzer.vcxproj
+software/firmware/NitroxAnalyzer/NitroxAnalyzer.vcxproj.filter
