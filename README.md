@@ -3,9 +3,9 @@ This repository contains everything needed to build a nitrox analyzer that uses 
 
 The finished product:
 
+![Image](docs/images/20160121_203550.jpg "The nitrox analyser V2")
 
 
-
-Read [the wiki page](https://github.com/sergio-alves/NitroxAnalyzer/wiki) to get more information about the project
+Read [the wiki page](https://github.com/sergio-alves/NitroxAnalyzer/wiki) to get more information about the project.
 
 
