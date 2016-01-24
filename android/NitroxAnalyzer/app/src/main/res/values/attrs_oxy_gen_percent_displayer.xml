@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="OxyGenPercentDisplayer">
+        <attr name="fontSize" format="integer" />
+        <attr name="oxyRate" format="integer" />
+    </declare-styleable>
+</resources>

@@ -20,3 +20,15 @@ Release
 *.FCStd1
 hardware/eagle files/NitroxAnalyzer - Copie.brd
 hardware/images/Thumbs.db
+android/NitroxAnalyzer/.gradle/
+android/NitroxAnalyzer/.idea/
+firmware/NitroxAnalyzer/NitroxAnalyser.v12.suo
+firmware/NitroxAnalyzer/NitroxAnalyzer.opensdf
+firmware/NitroxAnalyzer/NitroxAnalyzer.sdf
+firmware/NitroxAnalyzer/NitroxAnalyzer.sln
+firmware/NitroxAnalyzer/ipch
+firmware/NitroxAnalyzer/Debug
+firmware/NitroxAnalyzer/Visual Micro
+firmware/NitroxAnalyzer/NitroxAnalyzer.v12.suo
+firmware/NitroxAnalyzer/NitroxAnalyzer.vcxproj
+firmware/NitroxAnalyzer/NitroxAnalyzer.vcxproj.filters

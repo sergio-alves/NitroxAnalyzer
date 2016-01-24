@@ -1,0 +1,25 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" android:persistent="true">
+    <ListPreference
+        android:key="bluetooth_interface"
+        android:summary="@string/bluetooth_devices_summary"
+        android:title="@string/bluetooth_interfaces"
+        android:persistent="true" />
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="bluetooth_automatic_connection"
+        android:summary="@string/connect_to_device_at_startup_summary"
+        android:title="@string/connect_to_device_at_startup" />
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="automatic_calibration_at_connection"
+        android:summary="Determines if the calibration is done automatically just after the bluetooth connection."
+        android:title="@string/calibrate_at_connection" />
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:summary="Determines if after a calibration, regular O2 measures are done or if user have to explicitly command it."
+        android:key="continuous_o2_measurement"
+        android:title="Continuous O2 measurements" />
+</PreferenceScreen >

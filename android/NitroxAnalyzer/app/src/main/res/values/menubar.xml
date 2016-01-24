@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="layout_width">match_parent</string>
+    <string name="layout_height">?attr/actionBarSize</string>
+    <string name="background">?attr/colorPrimary</string>
+    <string name="elevation">4dp</string>
+    <style name="theme" theme="@style/ThemeOverlay.AppCompat.ActionBar" />
+    <style name="popupTheme" theme="@style/ThemeOverlay.AppCompat.Light" />
+</resources>
