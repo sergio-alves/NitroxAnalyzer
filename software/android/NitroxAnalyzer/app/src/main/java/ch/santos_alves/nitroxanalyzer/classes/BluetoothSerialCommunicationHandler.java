@@ -231,4 +231,18 @@ public class BluetoothSerialCommunicationHandler implements SerialCommunicationI
     public void dequeueCommand(Command c) {
         Log.d("Nitrox Analyzer", "Command dequeue :" + c.getCommand());
     }
+
+    /**
+     * Something went wrong
+     *
+     * @param c The returned command
+     */
+    @Override
+    public void commandFailed(Command c) {
+        Log.e("Nitrox Analyzer", "Command " + c.getCommand() + " failed!!");
+        //is connection still up???
+        Log.e("Nitrox Analyzer", "Bluetooth socket is disconnected. Disconnect Handler");
+        //socket is closed => disconnect
+        disconnect();
+    }
 }

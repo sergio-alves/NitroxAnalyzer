@@ -23,4 +23,10 @@ public interface SerialCommunicationInterfaceListener {
      * @param c the command sent
      */
     void dequeueCommand(Command c);
+
+    /**
+     * Something went wrong
+     * @param c The returned command
+     */
+    void commandFailed(Command c);
 }

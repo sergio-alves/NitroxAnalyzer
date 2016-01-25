@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include "DS1868Driver.h"
 #include <Stream.h>
 
 #include "SerialCommand.h"

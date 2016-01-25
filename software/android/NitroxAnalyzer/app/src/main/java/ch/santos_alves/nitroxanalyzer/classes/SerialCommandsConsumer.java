@@ -81,12 +81,19 @@ public class SerialCommandsConsumer extends Thread {
                     }
 
                     //block until response reception
-                    command = response.get();
-
-                    //notify listeners
-                    for (SerialCommunicationInterfaceListener listener : listeners) {
-                        listener.responseReceived(command);
+                    if(response.get() == null) {
+                        for (SerialCommunicationInterfaceListener listener : listeners) {
+                            listener.commandFailed(command);
+                        }
+                        //// TODO: 24.01.2016 But what????
+                    } else {
+                        command = response.get();
+                        //notify listeners
+                        for (SerialCommunicationInterfaceListener listener : listeners) {
+                            listener.responseReceived(command);
+                        }
                     }
+                    
                     command = null;
                 }
 
@@ -104,6 +111,9 @@ public class SerialCommandsConsumer extends Thread {
                 ex.printStackTrace();
             }
         }
+
+        //clear remaining commands
+        queue.clear();
     }
 
     /**

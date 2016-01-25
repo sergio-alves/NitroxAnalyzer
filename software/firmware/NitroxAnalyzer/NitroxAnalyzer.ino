@@ -3,27 +3,17 @@
 #include <SPI.h>
 #include <stdio.h>
 #include <EEPROM\EEPROM.h>
-#include "DS1868Driver.h"
-
 #include "ADS1210Driver.h"
 #include "SerialProtocolHandler.h"
 
 #define SOFTWARE_RX_PIN					5
 #define SOFTWARE_TX_PIN					6
 
-#define RESET_PIN						9
-#define CLOCK_PIN						8
-#define DATA_PIN						7
-
 #define ADS1210_CLK						8
 #define ARDUINO_OUT_ADS1210_IN			10
 #define ARDUINO_IN_ADS1210_OUT			4
 
-#define MAX1987_CS						10
 #define BATTERY_AD_INPUT				A0
-
-SoftwareSerial BTSerial = SoftwareSerial(SOFTWARE_RX_PIN, SOFTWARE_TX_PIN);
-SerialProtocolHandler protocolHandler = SerialProtocolHandler(BTSerial);
 
 #define EEPROM_STORED_DATA_SIZE			12
 #define EEPROM_CONFIG_START_ADDRESS		0
@@ -44,10 +34,6 @@ typedef union {
 		} O2Cell; // 12 bytes
 	};
 } EEPROMContent;
-
-EEPROMContent eeprom;
-
-#define isEEPROMClean() eeprom.clean==0xCAFEBABE
 
 typedef union {
 	struct {
@@ -71,26 +57,41 @@ typedef union {
 	}structuredData;
 } SendingBuffer;
 
+enum States {
+	STATE_IDLE,
+	STATE_EXECUTE_GET_AVERAGE_INIT,
+	STATE_EXECUTE_GET_AVERAGE_READ_VALUES,
+	STATE_EXECUTE_GET_AVERAGE_RETURN_RESPONSE,
+	STATE_EXECUTE_GET_BATTERY_LOAD,
+	STATE_EXECUTE_GET_O2_CELL_INSTALL_DATE,
+	STATE_EXECUTE_SET_O2_CELL_INSTALL_DATE,
+};
+
+SoftwareSerial BTSerial = SoftwareSerial(SOFTWARE_RX_PIN, SOFTWARE_TX_PIN);
+SerialProtocolHandler protocolHandler = SerialProtocolHandler(BTSerial);
+EEPROMContent eeprom;
+
+#define isEEPROMClean() eeprom.clean==0xCAFEBABE
+
 SendingBuffer sb;
 DWORD_MAX_187_DATA_FORMAT current;
 char buffer[128];
 char c;
-//char incomingBuffer[64];
+SerialCommand * command;
+States state = STATE_IDLE;
+bool readMeasure = false;
+unsigned long average;
+int counter = 0;
+int maxIterations = 10;
+long min = 0x7FFFFFFF;
+long max = 0x80000000;
+
 
 /* This app setup*/
 void setup()
 {
 	Serial.begin(115200);
-
 	BTSerial.begin(9600);
-
-	SPI.begin();
-
-	pinMode(MAX1987_CS, OUTPUT);
-	digitalWrite(MAX1987_CS, HIGH);
-
-	/* Begin DS1868 driver module */
-	ds1868.begin(RESET_PIN, CLOCK_PIN, DATA_PIN);
 
 	attachInterrupt(digitalPinToInterrupt(2), newMeasure, FALLING);
 
@@ -104,47 +105,9 @@ void setup()
 	}
 }
 
-bool readMeasure = false;
-
-
 void newMeasure() {
 	readMeasure = true;
 }
-
-/* get multiple times the digital value and average it */
-int averagedDigitalValue(int reads) {
-	double average = 0;
-
-	SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE0));
-
-	for (int i = 0; i < reads; i++) {
-		//start conversion
-		digitalWrite(MAX1987_CS, LOW);
-
-		//wait for conversion to finish 1.5 for track+hold + 8.5 for conversion 20 >>> 10.5
-		delayMicroseconds(20);
-
-		//get converted data
-		current.bytes.high = SPI.transfer(0);
-		current.bytes.low = SPI.transfer(0);
-
-		//get the cleaned value
-		average += current.bitfield.value;
-
-		//Stop conversion
-		digitalWrite(MAX1987_CS, HIGH);
-	}
-
-	SPI.endTransaction();
-
-	return (int)(average / reads);
-}
-
-unsigned long average;
-int counter = 0;
-int maxIterations = 10;
-long min = 0x7FFFFFFF;
-long max = 0x80000000;
 
 void readAndIncrement() {
 	long l;
@@ -161,20 +124,6 @@ void readAndIncrement() {
 		counter++;
 	}
 }
-
-enum States {
-	STATE_IDLE,
-	STATE_EXECUTE_GET_AVERAGE_INIT,
-	STATE_EXECUTE_GET_AVERAGE_READ_VALUES,
-	STATE_EXECUTE_GET_AVERAGE_RETURN_RESPONSE,
-	STATE_EXECUTE_GET_BATTERY_LOAD,
-	STATE_EXECUTE_GET_O2_CELL_INSTALL_DATE,
-	STATE_EXECUTE_SET_O2_CELL_INSTALL_DATE,
-};
-
-SerialCommand * command;
-States state = STATE_IDLE;
-
 
 void loop() {
 	unsigned int mappedVal = 0, val = 0;

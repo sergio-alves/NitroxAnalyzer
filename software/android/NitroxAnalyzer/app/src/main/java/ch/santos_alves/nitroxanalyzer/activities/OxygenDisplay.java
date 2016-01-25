@@ -109,7 +109,7 @@ public class OxygenDisplay extends AppCompatActivity {
                 //and finally ask for calibration
                 btHandler.addNewCommand(new GetAverageCommand(CALIBRATION_ITERATIONS));
             }
-            
+
             @Override
             public boolean handleMessage(Message msg) {
                 switch (States.getState(msg.what)) {
@@ -252,12 +252,17 @@ public class OxygenDisplay extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             case R.id.O2_cell_settings:
-                intent = new Intent(getApplicationContext(), O2CellActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-                intent.putExtra("installDate", df.format(configuration.getO2Cell().getInstallDate()));
-                intent.putExtra("validityDate", df.format(configuration.getO2Cell().getValidityDate()));
-                startActivity(intent);
+                if(btHandler.isConnected()) {
+                    //Only allowed when a valid bt connection exists
+                    intent = new Intent(getApplicationContext(), O2CellActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+                    intent.putExtra("installDate", df.format(configuration.getO2Cell().getInstallDate()));
+                    intent.putExtra("validityDate", df.format(configuration.getO2Cell().getValidityDate()));
+                    startActivity(intent);
+                } else {
+                    onConnect(null);
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

@@ -70,8 +70,10 @@ public class CallableCommandImpl<V extends Command> implements Callable<V> {
                 Thread.sleep(10);
             } catch (IOException e) {
                 e.printStackTrace();
+                return null;
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                return null;
             }
         }
 
