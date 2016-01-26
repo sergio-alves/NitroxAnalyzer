@@ -24,9 +24,6 @@
     <None Include="NitroxAnalyzer.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DS1868Driver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SerialProtocolHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -56,9 +53,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DS1868Driver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SerialProtocolHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
