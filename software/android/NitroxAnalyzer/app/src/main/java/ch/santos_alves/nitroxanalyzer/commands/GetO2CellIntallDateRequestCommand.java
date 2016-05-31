@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,14 +14,39 @@ import java.util.regex.Pattern;
  *
  * Created by Sergio on 16.01.2016.
  */
-public class GetO2CellIntallDateCommand extends AbstractCommand {
+public class GetO2CellIntallDateRequestCommand extends AbstractRequestCommand {
     private String responsePattern = "^RET O2 CELL INSTALL DATE (\\d+-\\d+-\\d{4})$";
     private String command = "GET O2 CELL INSTALL DATE";
+    protected Date date;
+    protected String formattedDate;
 
     @Override
     public String getCommand() {
         return command;
     }
+
+    /**
+     * Get Date
+     * @return the date
+     */
+    public Date getDate() {
+        return date;
+    }
+
+    /**
+     * Get formatted date
+     * @return a dd-MM-yyyy date
+     */
+    public String getFormattedDate() {
+        return formattedDate;
+    }
+
+    /**
+     * Sets the formatted date
+     * @param formattedDate string formatted date
+     */
+    public void setFormattedDate(String formattedDate) {this.formattedDate = formattedDate;}
+
 
     public void parseReceivedResponse(String str) {
         Pattern p = null;

@@ -7,10 +7,10 @@ class SetO2CellInstallDateCommand : public SerialCommand
 {
 public:
 	/* Parses the input buffer looking for this command string */
-	boolean parse(byte * buffer, int size);
+	boolean parse(char * buffer, int size);
 
 	/* Builds a response using command properties */
-	void createResponse(byte * buffer, int size);
+	void createResponse(char * buffer, int size);
 
 	/* Returns an id corresponding to this command */
 	SerialCommandEnum getCommandID() { return SET_O2_CELL_INSTALL_DATE; }

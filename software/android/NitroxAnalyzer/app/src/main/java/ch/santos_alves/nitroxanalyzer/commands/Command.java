@@ -7,8 +7,11 @@ package ch.santos_alves.nitroxanalyzer.commands;
  */
 public interface Command {
     Boolean isSent();
+
     void setSend(boolean val);
     String getCommand();
+
     void parseReceivedResponse(String str);
+
     boolean isCompleted();
 }

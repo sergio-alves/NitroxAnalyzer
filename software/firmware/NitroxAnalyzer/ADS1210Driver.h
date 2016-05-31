@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#define DEBUG true
+#define DEBUG false
 
 typedef enum ReadWrite{
 	WRITE = 0,
@@ -117,7 +117,7 @@ typedef enum TurboModeRate{
 
 
 typedef union CommandRegister{
-	byte cmr[4];
+	byte data[4];
 	struct {
 		unsigned decimationRatio : 13; // LSByte and LSBit
 		unsigned turboMode : 3;	// default turbo mode rate = 1				
@@ -136,16 +136,46 @@ typedef union CommandRegister{
 } CommandRegister;
 
 
+typedef union {
+	byte data[3];
+	struct {
+		byte do0;
+		byte do1;
+		byte do2;
+	} bytes;
+} DataOutputRegister, OffsetCalibrationRegister, FullScaleCalibrationRegister;
+
+typedef union {
+	byte data[13];
+	struct {
+		DataOutputRegister				dor;
+		CommandRegister					cmr;
+		OffsetCalibrationRegister		ocr;
+		FullScaleCalibrationRegister	fcr;
+	};
+} ADS1210Registers;
+
+
+
+
 class ADS1210Driver
 {
 public:
 	ADS1210Driver(unsigned long ads1210Frequency);
 	~ADS1210Driver();
 	void begin(byte clk, byte dIn, byte dOut);
-	long readDataOutputRegister();
+	void begin(byte clk, byte dIn, byte dOut, CommandRegister& creg);
+
+	/* called to read all ads registers data */
+	void readRegisters();
+
+	/* Returns the last read value */
+	long getDigitalOutputValue();
+	
+	ADS1210Registers registers;
 
 protected:
-	void calculateAndSetDecimationRate(int fData);
+	void calculateAndSetDecimationRate(int fData, CommandRegister& creg);
 	boolean isPGAControlCorrectBasedOnTurboModeRate();
 	boolean isTurboModeRateCorrectBasedOnPGAControl();
 	void transmitByte(byte value);
@@ -167,7 +197,9 @@ private:
 
 	CommandRegister creg;
 	InstructionReg insreg;
+	
+	long min = 0x7fffffff, max = 0x80000000, value = 0, iterations = 0;
 };
 
-extern ADS1210Driver ads1210;
+extern ADS1210Driver ADS1210;
 

@@ -7,8 +7,10 @@ class GetAverageCommand : public SerialCommand
 {
 public:
 	/* Parses the input buffer looking for this command string */
-	boolean parse(byte * buffer, int size);
-	void createResponse(byte * buffer, int size);
+	boolean parse(char * buffer, int size);
+	
+	/* Creates the response for the current command */
+	void createResponse(char * buffer, int size);
 
 	/* Returns an id corresponding to this command */
 	inline SerialCommandEnum getCommandID() { return GET_AVERAGE;}

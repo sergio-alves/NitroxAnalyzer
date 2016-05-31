@@ -30,6 +30,9 @@ public:
 	/* Sends an error */
 	void sendErrorResponse(int id, const PROGMEM char * str);
 
+	/* Checks if a command was received during last 3s */
+	bool isBTConnectionUp();
+
 protected:
 	/* Read an append a byte to the input buffer */
 	void getSerialData();
@@ -41,12 +44,15 @@ private:
 	SerialCommand * cmdList[AVAILABLE_COMMANDS_COUNT];
 	Stream& serial;
 
-	byte inBuffer[IN_BUFFER_SIZE];
-	byte * inBufferPos = inBuffer;
-	byte outBuffer[OUT_BUFFER_SIZE];
+	char inBuffer[IN_BUFFER_SIZE];
+	char * inBufferPos = inBuffer;
+	char outBuffer[OUT_BUFFER_SIZE];
 
 	/* Clean and reset input buffer */
 	void cleanAndResetInBuffer();
-};
+	
+	bool sentAck;
+	unsigned long lastReceived;
 
-extern SerialProtocolHandler protocolHandler;
+	static const int TIMEOUT = 3000;
+};

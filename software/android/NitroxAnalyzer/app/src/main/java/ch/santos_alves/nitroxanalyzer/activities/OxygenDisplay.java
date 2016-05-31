@@ -24,9 +24,9 @@ import java.util.TimerTask;
 
 import ch.santos_alves.nitroxanalyzer.R;
 import ch.santos_alves.nitroxanalyzer.classes.BluetoothSerialCommunicationHandler;
-import ch.santos_alves.nitroxanalyzer.commands.GetAverageCommand;
-import ch.santos_alves.nitroxanalyzer.commands.GetO2CellIntallDateCommand;
-import ch.santos_alves.nitroxanalyzer.commands.GetO2CellValidityDateCommand;
+import ch.santos_alves.nitroxanalyzer.commands.GetAverageRequestCommand;
+import ch.santos_alves.nitroxanalyzer.commands.GetO2CellIntallDateRequestCommand;
+import ch.santos_alves.nitroxanalyzer.commands.GetO2CellValidityDateRequestCommand;
 import ch.santos_alves.nitroxanalyzer.classes.NitroxAnalyzerConfiguration;
 import ch.santos_alves.nitroxanalyzer.classes.States;
 import ch.santos_alves.nitroxanalyzer.views.OxyGenPercentDisplayer;
@@ -103,11 +103,11 @@ public class OxygenDisplay extends AppCompatActivity {
                 onCalibrate(findViewById(R.id.btnCalibrate));
 
                 //get device stored configuration first
-                btHandler.addNewCommand(new GetO2CellIntallDateCommand());
-                btHandler.addNewCommand(new GetO2CellValidityDateCommand());
+                btHandler.addNewCommand(new GetO2CellIntallDateRequestCommand());
+                btHandler.addNewCommand(new GetO2CellValidityDateRequestCommand());
 
                 //and finally ask for calibration
-                btHandler.addNewCommand(new GetAverageCommand(CALIBRATION_ITERATIONS));
+                btHandler.addNewCommand(new GetAverageRequestCommand(CALIBRATION_ITERATIONS));
             }
 
             @Override
@@ -159,8 +159,8 @@ public class OxygenDisplay extends AppCompatActivity {
      * @param msg The message received
      */
     private void onResponseReceived(Message msg) {
-        if (msg.obj instanceof GetAverageCommand) {
-            GetAverageCommand gac = (GetAverageCommand) msg.obj;
+        if (msg.obj instanceof GetAverageRequestCommand) {
+            GetAverageRequestCommand gac = (GetAverageRequestCommand) msg.obj;
             if (gac.getIterations() == CALIBRATION_ITERATIONS) {
                 //Calibration
                 calibre = gac.getAverage();
@@ -175,7 +175,7 @@ public class OxygenDisplay extends AppCompatActivity {
                     new Timer().schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            btHandler.addNewCommand(new GetAverageCommand(AVERAGE_ITERATIONS));
+                            btHandler.addNewCommand(new GetAverageRequestCommand(AVERAGE_ITERATIONS));
                         }
                     }, 50, 1000);
                 }
@@ -185,10 +185,10 @@ public class OxygenDisplay extends AppCompatActivity {
                 OxyGenPercentDisplayer og = (OxyGenPercentDisplayer) findViewById(R.id.nitroxTank);
                 og.setOxyrate((int) Math.round(gac.getAverage() * 20.95 / calibre));
             }
-        }else if (msg.obj instanceof GetO2CellIntallDateCommand) {
-            configuration.getO2Cell().setInstallDate(((GetO2CellIntallDateCommand) msg.obj).getDate());
-        }else if (msg.obj instanceof GetO2CellValidityDateCommand) {
-            configuration.getO2Cell().setValidityDate(((GetO2CellValidityDateCommand) msg.obj).getDate());
+        }else if (msg.obj instanceof GetO2CellIntallDateRequestCommand) {
+            configuration.getO2Cell().setInstallDate(((GetO2CellIntallDateRequestCommand) msg.obj).getDate());
+        }else if (msg.obj instanceof GetO2CellValidityDateRequestCommand) {
+            configuration.getO2Cell().setValidityDate(((GetO2CellValidityDateRequestCommand) msg.obj).getDate());
         }
     }
 

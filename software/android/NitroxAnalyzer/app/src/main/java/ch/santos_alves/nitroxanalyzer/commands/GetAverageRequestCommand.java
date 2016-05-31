@@ -10,35 +10,17 @@ import java.util.regex.Pattern;
  *
  * Created by Sergio on 16.01.2016.
  */
-public class GetAverageCommand implements Command {
+public class GetAverageRequestCommand extends AbstractRequestCommand {
     private String responsePattern = "^RET AVERAGE (\\d*)$";
     private String command = "GET AVERAGE %1$d";
     private int iterations = 5;
     private long average;
-    private boolean commandSent = false;
-    private boolean completed = false;
-
-    /**
-     * Gets flag sent state
-     * @return the sent flag state
-     */
-    public Boolean isSent() {
-        return commandSent;
-    }
-
-    /**
-     * sets flag sent
-     * @param val true if command was sent false otherwise
-     */
-    public void setSend(boolean val) {
-        commandSent = val;
-    }
 
     /**
      * The constructor
      * @param iterations the wished number of iterations
      */
-    public GetAverageCommand(int iterations) {
+    public GetAverageRequestCommand(int iterations) {
         this.setIterations(iterations);
     }
 
@@ -67,16 +49,6 @@ public class GetAverageCommand implements Command {
             Log.i("Nitrox Analyzer", "Group value : " + m.group(1));
             completed = true;
         }
-    }
-
-    /**
-     * Gets if completed flag set
-     *
-     * @return is completed flag
-     */
-    @Override
-    public boolean isCompleted() {
-        return completed;
     }
 
     /**

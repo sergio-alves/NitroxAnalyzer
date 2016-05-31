@@ -2,7 +2,6 @@ package ch.santos_alves.nitroxanalyzer.commands;
 
 import android.util.Log;
 
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,12 +10,10 @@ import java.util.regex.Pattern;
  *
  * Created by Sergio on 23.01.2016.
  */
-public abstract class AbstractCommand implements Command {
+public abstract class AbstractResponseCommand implements Command {
     protected String errorPattern = "^ERROR";
-    protected Date date;
-    protected String formattedDate;
     protected boolean completed = false;
-    private boolean commandSent = false;
+    //private boolean commandReceived = false;
 
     /**
      * Check that response is an error.
@@ -39,19 +36,11 @@ public abstract class AbstractCommand implements Command {
     }
 
     /**
-     * Get Date
-     * @return the date
-     */
-    public Date getDate() {
-        return date;
-    }
-
-    /**
      * check if command was sent
      * @return sent state
      */
     public Boolean isSent() {
-        return commandSent;
+        throw new RuntimeException("Unimplemented function");
     }
 
     /**
@@ -59,7 +48,7 @@ public abstract class AbstractCommand implements Command {
      * @param val the send state
      */
     public void setSend(boolean val) {
-        commandSent = val;
+        throw new RuntimeException("Unimplemented function");
     }
 
     /**
@@ -71,17 +60,8 @@ public abstract class AbstractCommand implements Command {
         return completed;
     }
 
-    /**
-     * Get formatted date
-     * @return a dd-MM-yyyy date
-     */
-    public String getFormattedDate() {
-        return formattedDate;
+    @Override
+    public String getCommand() {
+        throw new RuntimeException("Unimplemented function");
     }
-
-    /**
-     * Sets the formatted date
-     * @param formattedDate string formatted date
-     */
-    public void setFormattedDate(String formattedDate) {this.formattedDate = formattedDate;}
 }

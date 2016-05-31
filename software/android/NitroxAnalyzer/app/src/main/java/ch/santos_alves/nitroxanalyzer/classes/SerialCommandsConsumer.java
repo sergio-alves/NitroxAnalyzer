@@ -1,6 +1,9 @@
 package ch.santos_alves.nitroxanalyzer.classes;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -11,6 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 
+import ch.santos_alves.nitroxanalyzer.commands.AcknowledgeCommand;
 import ch.santos_alves.nitroxanalyzer.commands.Command;
 
 /**
@@ -68,9 +72,19 @@ public class SerialCommandsConsumer extends Thread {
     public void run() {
         CallableCommandImpl<Command> cci = new CallableCommandImpl<>(inputStream, outputStream, command);
         Future<Command> response;
+        InputStreamReader isr = new InputStreamReader(inputStream);
+        BufferedReader br = new BufferedReader(isr);
+        String line;
 
         while (threadRunning) {
             try {
+                /*
+                if(null != (line = br.readLine())) {
+                    //New command received
+                    if(AcknowledgeCommand.parseReceivedRequest(line))
+                        outputStream.write(AcknowledgeCommand.getResponse().getBytes());
+                }*/
+
                 if(command != null) {
                     cci.setCommand(command);
                     response = executor.submit(cci);

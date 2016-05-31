@@ -10,6 +10,7 @@ enum SerialCommandEnum {
 	GET_O2_CELL_VALIDITY_DATE,
 	SET_O2_CELL_INSTALL_DATE,
 	SET_O2_CELL_VALIDITY_DATE,
+	GET_ACKNOWLEDGE,
 };
 
 /* The representation of a serial command used between Nitrox Analyzer and Android app*/
@@ -17,10 +18,10 @@ class SerialCommand
 {
 public:
 	/* Parses the input buffer looking for this command string */
-	virtual boolean parse(byte * buffer, int size) = 0;
+	virtual boolean parse(char * buffer, int size) = 0;
 
 	/* Builds a response using command properties */
-	virtual void createResponse(byte * buffer, int size) = 0;
+	virtual void createResponse(char * buffer, int size) = 0;
 	
 	/* Returns an id corresponding to this command */
 	virtual SerialCommandEnum getCommandID() = 0 ;

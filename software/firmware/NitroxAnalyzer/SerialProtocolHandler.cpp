@@ -12,7 +12,7 @@ SerialProtocolHandler::SerialProtocolHandler(Stream& serialStream) : serial(seri
 
 /* Returns the next command parsed if any or NULL */
 SerialCommand * SerialProtocolHandler::getNextCommand() {
-	//Get last byte (do it byty by byte)
+	//Get last byte (do it byte by byte)
 	getSerialData();
 	return parseLine();
 }
@@ -31,7 +31,7 @@ SerialCommand * SerialProtocolHandler::parseLine() {
 	}
 
 	if (strchr((const char*)inBuffer, 10) != NULL) {
-		sendErrorResponse(0, (const char *)F("No valid command"));
+		sendErrorResponse(0, "No valid command");
 		cleanAndResetInBuffer();
 	}
 
@@ -41,29 +41,44 @@ SerialCommand * SerialProtocolHandler::parseLine() {
 /* Clean and reset input buffer */
 void SerialProtocolHandler::cleanAndResetInBuffer() {
 	Serial.println(F("Cleaning input buffer"));
-	memset(inBuffer, 0, 64);
+	memset(inBuffer, 0, IN_BUFFER_SIZE);
 	inBufferPos = inBuffer;
 }
 
 /* Sends a response to the Serial command received */
 void SerialProtocolHandler::sendResponse(SerialCommand * c) {
-	c->createResponse(outBuffer, 64);
-	serial.println((char *)outBuffer);
+	c->createResponse(outBuffer, OUT_BUFFER_SIZE);
+	serial.println(outBuffer);
 }
 
 /* Sends an error response */
 void SerialProtocolHandler::sendErrorResponse(int id, const char * str) {
 	memset(outBuffer, 0, OUT_BUFFER_SIZE);
-	sprintf_P((char *)outBuffer, (const char *)F("ERROR [%i] %s"), id, str);
-	serial.println((char *)outBuffer);
+	sprintf(outBuffer, "ERROR [%d] %s", id, str);
+	serial.println(outBuffer);
 }
 
 /* Read an append a byte to the input buffer */
 void SerialProtocolHandler::getSerialData() {
 	if (serial.available() > 0) {
-		if ((inBufferPos - inBuffer) < 64) {
-			*inBufferPos = (byte)serial.read();
-			inBufferPos++;
+		Serial.print(millis());
+		Serial.println(F(" - data received"));
+		
+		lastReceived = millis();
+
+		if ((inBufferPos - inBuffer) < IN_BUFFER_SIZE) {
+			while (serial.available()) {
+				*inBufferPos = (char)serial.read();
+				inBufferPos++;
+			}
 		}
+
+		Serial.print(F("Actual buffer state : "));
+		Serial.println(inBuffer);
 	}
+}
+
+/* Checks if a command was received during last 3s */
+bool SerialProtocolHandler::isBTConnectionUp() {
+	return (millis() - lastReceived) < TIMEOUT; 
 }

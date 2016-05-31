@@ -6,7 +6,7 @@ ADS1210Driver::ADS1210Driver(unsigned long freqIn)
 	ADS1210Driver::frequencyIn = freqIn;
 }
 
-void ADS1210Driver::begin(byte clk, byte arduinoOutADS1210In, byte arduionInADS1210Out) {
+void ADS1210Driver::begin(byte clk, byte arduinoOutADS1210In, byte arduionInADS1210Out, CommandRegister& comreg) {
 	din_pin = arduionInADS1210Out;
 	dout_pin = arduinoOutADS1210In;
 	clk_pin = clk;
@@ -22,57 +22,21 @@ void ADS1210Driver::begin(byte clk, byte arduinoOutADS1210In, byte arduionInADS1
 	insreg.bits.rw = WRITE;
 	insreg.bits.mb = _4BYTES;
 	insreg.bits.address = COMMAND_REGISTER_BYTE_3_MSB;
-	
-	/*
-	Serial.print(F("INSREG = "));
-	Serial.println(insreg.insr);
-	*/
-
-	//defaults
-	creg.bias = Off;
-	creg.referenceOutput = On;
-	creg.dataFormat = TwosComplement;
-	creg.unipolar = Bipolar;
-	creg.byteOrder = MostSignificantByteFirst;
-	creg.bitOrder = MostSignificantBitFirst;
-	creg.serialDataLine = SDOUT;
-	creg.operationMode = BackgroundCalibration;
-	creg.pgaMode = GAIN_2;
-	creg.channel = Channel1;
-	creg.turboMode = TurboModeRate16;
-
-	/* Works as expected 
-	==============================================
-	Serial.print(F("CREG[3] = "));
-	Serial.println(creg.cmr[3]);
-	Serial.print(F("CREG[2] = "));
-	Serial.println(creg.cmr[2]);
-	Serial.print(F("CREG[1] = "));
-	Serial.println(creg.cmr[1]);
-	Serial.print(F("CREG[0] = "));
-	Serial.println(creg.cmr[0]);
-	*/
-	//calculate decimation rate 5 times per second
-	calculateAndSetDecimationRate(50);
-
-	//Write command
-	//should set dio_pin as output
-	//pinMode(dio_pin, OUTPUT);
 
 	//transmit instruction byte
 	transmitByte(insreg.insr);
 
 	//transmitting command byte
 	for (int i = 3; i >= 0; i--) {
-		transmitByte(creg.cmr[i]);
+		transmitByte(comreg.data[i]);
 	}
 
 	Serial.print(F("Sent configuration to ads1210 : ("));
 	for (int i = 3; i >= 0; i--) {
-		Serial.print(creg.cmr[i]);
+		Serial.print(comreg.data[i]);
 		if (i>0)
 			Serial.print(F(")-("));
-		else 
+		else
 			Serial.print(F(")"));
 	}
 
@@ -80,7 +44,7 @@ void ADS1210Driver::begin(byte clk, byte arduinoOutADS1210In, byte arduionInADS1
 
 
 	//Now Read the configuration
-	
+
 	CommandRegister cr;
 
 	//Readcommand
@@ -94,15 +58,35 @@ void ADS1210Driver::begin(byte clk, byte arduinoOutADS1210In, byte arduionInADS1
 		Serial.print("Receiving Data : ");
 
 	for (int i = 3; i >= 0; i--) {
-		cr.cmr[i] = receiveByte();
+		cr.data[i] = receiveByte();
 	}
 
 	if (DEBUG)
 		Serial.println();
 
-	if ((cr.cmr[3] & 0xFE) != (creg.cmr[3]&0xFE)) {
+	if ((cr.data[3] & 0xFE) != (comreg.data[3] & 0xFE)) {
 		Serial.println(F("We have a very big problem :::::: cannot get or write right creg values from ads1210."));
 	}
+}
+
+void ADS1210Driver::begin(byte clk, byte arduinoOutADS1210In, byte arduionInADS1210Out) {
+	//defaults
+	creg.bias = Off;
+	creg.referenceOutput = On;
+	creg.dataFormat = TwosComplement;
+	creg.unipolar = Unipolar;
+	creg.byteOrder = MostSignificantByteFirst;
+	creg.bitOrder = MostSignificantBitFirst;
+	creg.serialDataLine = SDOUT;
+	creg.operationMode = BackgroundCalibration;
+	creg.pgaMode = GAIN_16;
+	creg.channel = Channel1;
+	creg.turboMode = TurboModeRate1;
+
+	//calculate decimation rate 5 times per second
+	calculateAndSetDecimationRate(100, creg);
+
+	begin(clk, arduinoOutADS1210In, arduionInADS1210Out, creg);
 }
 
 ADS1210Driver::~ADS1210Driver()
@@ -110,7 +94,7 @@ ADS1210Driver::~ADS1210Driver()
 
 }
 
-void ADS1210Driver::calculateAndSetDecimationRate(int fData) {
+void ADS1210Driver::calculateAndSetDecimationRate(int fData, CommandRegister& comreg) {
 	double tmr;
 
 	//Cannot be faster
@@ -120,11 +104,11 @@ void ADS1210Driver::calculateAndSetDecimationRate(int fData) {
 	if (DEBUG) {
 		char buffer[64];
 		if (DEBUG)
-			sprintf(buffer, "frequencyIn, turboMode,fdata -> %lu, %i, %i\\0", frequencyIn, creg.turboMode, fData) ;
+			sprintf(buffer, "frequencyIn, turboMode,fdata -> %lu, %i, %i\\0", frequencyIn, comreg.turboMode, fData);
 		Serial.println(buffer);
 	}
 
-	double decimationRatio = (((double)frequencyIn * pow(2,(double)creg.turboMode)) / ((double)fData*512.0)) - 1.0;
+	double decimationRatio = (((double)frequencyIn * pow(2, (double)comreg.turboMode)) / ((double)fData*512.0)) - 1.0;
 
 	if (DEBUG) {
 		Serial.print(F("Calculated DecimationRation for data frequency "));
@@ -141,7 +125,7 @@ void ADS1210Driver::calculateAndSetDecimationRate(int fData) {
 	if (decimationRatio < 19)
 		decimationRatio = 19;
 
-	creg.decimationRatio = (int)decimationRatio;
+	comreg.decimationRatio = (int)decimationRatio;
 }
 
 boolean ADS1210Driver::isPGAControlCorrectBasedOnTurboModeRate() {
@@ -189,13 +173,26 @@ boolean ADS1210Driver::setGain(ComReg_GainSetting gain){
 	}
 }
 
+/* Returns the long value of the ADC output*/
+long ADS1210Driver::getDigitalOutputValue () {
+	long v = ADS1210.registers.dor.bytes.do2;
+	v = v << 8;
+	v += ADS1210.registers.dor.bytes.do1;
+	v = v << 8;
+	v += ADS1210.registers.dor.bytes.do0;
+
+	return v;
+}
+
 /*
 Reads the content of the Data Output Register. creg Bit and Byte order are supported.
 */
-long ADS1210Driver::readDataOutputRegister() {
+
+/*
+long ADS1210Driver::getDigitalOutputValue() {
 	long data = 0;
-	unsigned long l;
-	boolean msb = creg.byteOrder == MostSignificantByteFirst;
+	unsigned long l = 0;
+	boolean msb = (creg.byteOrder == MostSignificantByteFirst);
 
 	//set isnreg stuff and sendit
 	insreg.bits.rw = READ;
@@ -203,38 +200,113 @@ long ADS1210Driver::readDataOutputRegister() {
 	insreg.bits.address = DATA_OUTPUT_REG_BYTE_2_MSB;
 
 	//Normally called just after a DRDY low detection
-	delayMicroseconds(1); // min 5.5 * 100 nS => 550 ns  then 1 Us should be enough
+	delayMicroseconds(2); // min 5.5 * 100 nS => 550 ns  then 1 Us should be enough
 
 	//write insr 
 	transmitByte(insreg.insr);
-	delayMicroseconds(10);
+	delayMicroseconds(20);
 
-	for (int i = (msb ? insreg.bits.mb : 0); (msb ? i >= 0 : i <= insreg.bits.mb); (msb? i--: i++)) {
+	for (int i = (msb ? insreg.bits.mb : 0); (msb ? i >= 0 : i <= insreg.bits.mb); (msb ? i-- : i++)) {
 		//get byte
 		l = receiveByte();
 		data += (l << (8 * i));
-		
+
 		//set data sign if twos complement
-		if (creg.dataFormat == TwosComplement ) {
+		if (creg.dataFormat == TwosComplement) {
 			if (msb) {
 				if (insreg.bits.mb == i && insreg.bits.mb<3)
 					data += ((l & 0x80) << 24);
 			}
-			else{
-
-			}
-		}
-
-		if (DEBUG) {
-			Serial.print("{");
-			Serial.print(l);
-			Serial.print(", ");
-			Serial.print(data);
-			Serial.println("}");
 		}
 	}
-	
+
+	if (DEBUG) {
+		Serial.print("s{");
+		Serial.print(l);
+		Serial.print(", ");
+		Serial.print(data);
+		Serial.println("}");
+	}
+
 	return data;
+}*/
+
+void ADS1210Driver::readRegisters() {
+	long data = 0;
+	unsigned long l = 0;
+	boolean msb = (creg.byteOrder == MostSignificantByteFirst);
+
+	//set isnreg stuff and sendit
+	insreg.bits.rw = READ;
+	insreg.bits.mb = _3BYTES;
+	insreg.bits.address = DATA_OUTPUT_REG_BYTE_2_MSB;
+
+	//Normally called just after a DRDY low detection
+	delayMicroseconds(2); // min 5.5 * 100 nS => 550 ns  then 1 Us should be enough
+
+	//write insr 
+	transmitByte(insreg.insr);
+	delayMicroseconds(5);
+
+	for (int i = (msb ? insreg.bits.mb : 0); (msb ? i >= 0 : i <= insreg.bits.mb); (msb ? i-- : i++)) {
+		//get byte
+		l = receiveByte();
+		registers.dor.data[i] = l;
+	}
+
+	//set isnreg stuff and sendit
+	insreg.bits.rw = READ;
+	insreg.bits.mb = _4BYTES;
+	insreg.bits.address = COMMAND_REGISTER_BYTE_3_MSB;
+
+	//Normally called just after a DRDY low detection
+	delayMicroseconds(2); // min 5.5 * 100 nS => 550 ns  then 1 Us should be enough
+
+	//write insr 
+	transmitByte(insreg.insr);
+	delayMicroseconds(5);
+
+	for (int i = (msb ? insreg.bits.mb : 0); (msb ? i >= 0 : i <= insreg.bits.mb); (msb ? i-- : i++)) {
+		//get byte
+		l = receiveByte();
+		registers.cmr.data[i] = l;
+	}
+
+	//set isnreg stuff and sendit
+	insreg.bits.rw = READ;
+	insreg.bits.mb = _3BYTES;
+	insreg.bits.address = OFFSET_CAL_REGISTER_BYTE_2_MSB;
+
+	//Normally called just after a DRDY low detection
+	delayMicroseconds(2); // min 5.5 * 100 nS => 550 ns  then 1 Us should be enough
+
+	//write insr 
+	transmitByte(insreg.insr);
+	delayMicroseconds(5);
+
+	for (int i = (msb ? insreg.bits.mb : 0); (msb ? i >= 0 : i <= insreg.bits.mb); (msb ? i-- : i++)) {
+		//get byte
+		l = receiveByte();
+		registers.ocr.data[i] = l;
+	}
+
+	//set isnreg stuff and sendit
+	insreg.bits.rw = READ;
+	insreg.bits.mb = _3BYTES;
+	insreg.bits.address = FULL_SCALE_CAL_REG_BYTE_2_MSB;
+
+	//Normally called just after a DRDY low detection
+	delayMicroseconds(2); // min 5.5 * 100 nS => 550 ns  then 1 Us should be enough
+
+	//write insr 
+	transmitByte(insreg.insr);
+	delayMicroseconds(5);
+
+	for (int i = (msb ? insreg.bits.mb : 0); (msb ? i >= 0 : i <= insreg.bits.mb); (msb ? i-- : i++)) {
+		//get byte
+		l = receiveByte();
+		registers.fcr.data[i] = l;
+	}
 }
 
 /*
@@ -243,9 +315,9 @@ Send a bit to the ADS1210 IC
 void ADS1210Driver::transmitBit(byte bit) {
 	digitalWrite(clk_pin, HIGH);
 	digitalWrite(dout_pin, bit);
-	delayMicroseconds(1);
+	_NOP();
 	digitalWrite(clk_pin, LOW);
-	delayMicroseconds(1);
+	_NOP();
 }
 
 /*
@@ -271,10 +343,12 @@ Receives a bit from the ADS1210 IC
 byte ADS1210Driver::receiveBit() {
 	byte b;
 	digitalWrite(clk_pin, HIGH);
-	delayMicroseconds(1);
+//	delayMicroseconds(1);
+	_NOP();
 	digitalWrite(clk_pin, LOW);
 	b = digitalRead(din_pin);
-	delayMicroseconds(1);
+	//delayMicroseconds(1);
+	_NOP();
 
 	if (DEBUG)
 		Serial.print(b);
@@ -312,4 +386,4 @@ byte ADS1210Driver::receiveByte() {
 }
 
 //10MHz = the resonator frequency
-ADS1210Driver ads1210 = ADS1210Driver(10000000);
+ADS1210Driver ADS1210 = ADS1210Driver(10000000);
